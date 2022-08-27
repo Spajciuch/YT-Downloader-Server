@@ -6,4 +6,4 @@ To run this locally you should download this repository, then build it with `tsc
 ## Screenshot
 ![screenshot](https://cdn.discordapp.com/attachments/566193814591635457/1013085536992362536/unknown.png)
 
-I did this because sites available on-line are filled with ads
+I made this because sites available on-line are filled with ads
