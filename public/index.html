@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <title>YouTube downloader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
+    <script src="socket.io.js"></script>
+
+</head>
+<!-- https://youtu.be/mNEUkkoUoIA -->
+
+<body>
+    <div>
+        YouTube URL
+        <input autocomplete="off" type="text" name="url" id="urlField" placeholder="https://youtu.be/...">
+        Format
+        <select id="format" name="format">
+            <option value="mp3">mp3</option>
+            <option value="mp4">mp4</option>
+        </select>
+        <input type="submit" value="Download" id="download">
+        <p id="message" class="message"></p>
+    </div>
+
+</body>
+
+<style>
+    .message {
+        margin-left: 1000;
+    }
+
+    body {
+        font-family: 'Silkscreen', cursive;
+        background-color: #272727;
+    }
+
+    input[type=text],
+    select {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    input[type=submit] {
+        width: 100%;
+        background-color: #4CAF50;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    input[type=submit]:hover {
+        background-color: #45a049;
+    }
+
+    div {
+        border-radius: 5px;
+        background-color: #f2f2f2;
+        padding: 20px;
+    }
+</style>
+
+<script>
+    const socket = io()
+
+    const button = document.getElementById("download")
+
+    const urlField = document.getElementById("urlField")
+    const formatField = document.getElementById("format")
+    const message = document.getElementById("message")
+
+    socket.on("downloadReady", file => {
+        const path = file.replace(".", "")
+
+        window.location.href = path
+        message.innerHTML = ""
+        urlField.value = ""
+    })
+
+    button.addEventListener("click", () => {
+        socket.emit("download", { url: urlField.value, format: formatField.value })
+
+        message.innerHTML = "Wait for your download..."
+    })
+</script>
+
+</html>
