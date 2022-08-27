@@ -4,7 +4,8 @@
   "description": "Node.js based Youtube downloader MP3 / MP4",
   "main": "dist/server.js",
   "scripts": {
-    "test": "node ."
+    "start": "node .",
+    "build": "tsc"
   },
   "author": "spyte",
   "license": "ISC",
