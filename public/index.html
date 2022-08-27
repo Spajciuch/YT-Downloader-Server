@@ -86,12 +86,12 @@
 
         window.location.href = path
         message.innerHTML = ""
-        urlField.value = ""
+        // urlField.value = ""
     })
 
     button.addEventListener("click", () => {
         socket.emit("download", { url: urlField.value, format: formatField.value })
-
+        urlField.value = ""
         message.innerHTML = "Wait for your download..."
     })
 </script>
