@@ -77,15 +77,19 @@ io.on("connection", (socket: any) => {
                 command.saveToFile(audioPath)
 
                 command.on("end", () => { // Downloaded and converted to mp3
-                    const fileName = audioPath
                     console.log("[ytdl] Download finished")
-                    socket.emit("downloadReady", fileName)
+                    socket.emit("downloadReady", audioPath)
                 })
             }
         } else if (data.format == "mp4") {
             let videoPath = `./video/${info.player_response.videoDetails.title}.mp4`
             videoPath = videoPath.split(`"`).join("'")
             videoPath = videoPath.split(`*`).join("'")
+
+            if(fs.existsSync(videoPath)) {
+                console.log("[server] File was converted previously")
+                socket.emit("downloadReady", videoPath)
+            }
 
             const stream = ytdl(data.url, { filter: 'audioandvideo', quality: 'highestvideo' })
             stream.pipe(fs.createWriteStream(videoPath).on("finish", () => {
