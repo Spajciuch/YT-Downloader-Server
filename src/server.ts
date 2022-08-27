@@ -53,29 +53,41 @@ io.on("connection", (socket: any) => {
     console.log(`[socket.io] Socket connected`)
 
     socket.on("download", async (data: any) => {
-        const id = ytdl.getURLVideoID(data.url)
-
-        const info = await ytdl.getInfo(id)
-        const stream = ytdl(data.url, { filter: 'audioandvideo', quality: 'highestvideo' })
-
+        let id, info
+        try {
+            id = ytdl.getURLVideoID(data.url)
+            info = await ytdl.getInfo(id)
+        } catch {
+            socket.emit("alert", "Invalid URL has been provided")
+            return console.log("[error] Invalid URL")
+        }
+        
         if (data.format == "mp3") {
             let audioPath = `./audio/${info.player_response.videoDetails.title}.mp3`
             audioPath = audioPath.split(`"`).join("'")
             audioPath = audioPath.split(`*`).join("")
 
-            const command = ffmpeg({ source: stream })
-            command.saveToFile(audioPath)
+            // Check if file already exists locally
+            if (fs.existsSync(audioPath)) {
+                console.log("[server] File was converted previously")
+                socket.emit("downloadReady", audioPath)
+            } else {
+                const stream = ytdl(data.url, { filter: 'audioandvideo', quality: 'highestvideo' })
+                const command = ffmpeg({ source: stream })
+                command.saveToFile(audioPath)
 
-            command.on("end", () => { // Downloaded and converted to mp3
-                const fileName = audioPath
-                console.log("[ytdl] Download finished")
-                socket.emit("downloadReady", fileName)
-            })
+                command.on("end", () => { // Downloaded and converted to mp3
+                    const fileName = audioPath
+                    console.log("[ytdl] Download finished")
+                    socket.emit("downloadReady", fileName)
+                })
+            }
         } else if (data.format == "mp4") {
             let videoPath = `./video/${info.player_response.videoDetails.title}.mp4`
             videoPath = videoPath.split(`"`).join("'")
             videoPath = videoPath.split(`*`).join("'")
 
+            const stream = ytdl(data.url, { filter: 'audioandvideo', quality: 'highestvideo' })
             stream.pipe(fs.createWriteStream(videoPath).on("finish", () => {
                 console.log("[ytdl] Download finished")
                 socket.emit("downloadReady", videoPath)

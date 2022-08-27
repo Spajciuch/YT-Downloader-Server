@@ -94,6 +94,11 @@
         urlField.value = ""
         message.innerHTML = "Wait for your download..."
     })
+
+    socket.on("alert", text => {
+        alert(text)
+        message.innerHTML = ""
+    })
 </script>
 
 </html>
