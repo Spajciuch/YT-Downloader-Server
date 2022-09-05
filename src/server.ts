@@ -54,10 +54,10 @@ app.get("/video/:fileName", (req, res) => {
 
 io.on("connection", (socket: any) => {
     console.log(`[socket.io] Socket connected`)
-    
+
     socket.on("download", async (data: any) => {
         let id, info
-        
+
         try {
             id = ytdl.getURLVideoID(data.url)
             info = await ytdl.getInfo(id)
@@ -99,7 +99,7 @@ io.on("connection", (socket: any) => {
                     console.log("[ytdl] Download finished")
                     socket.emit("downloadReady", audioPath)
 
-                    if (config.deleteFiles) {
+                    if (config.deleteTime == 0) {
                         setTimeout(function () {
                             fs.unlinkSync(audioPath)
                         }, config.deleteTime)
@@ -114,12 +114,24 @@ io.on("connection", (socket: any) => {
             if (fs.existsSync(videoPath)) {
                 console.log("[server] File was converted previously")
                 socket.emit("downloadReady", videoPath)
+
+                if (config.deleteTime !== 0) {
+                    setTimeout(function () {
+                        fs.unlinkSync(videoPath)
+                    }, config.deleteTime)
+                }
             }
 
             const stream = ytdl(data.url, { filter: 'audioandvideo', quality: 'highestvideo' })
             stream.pipe(fs.createWriteStream(videoPath).on("finish", () => {
                 console.log("[ytdl] Download finished")
                 socket.emit("downloadReady", videoPath)
+
+                if (config.deleteTime !== 0) {
+                    setTimeout(function () {
+                        fs.unlinkSync(videoPath)
+                    }, config.deleteTime)
+                }
             }))
         }
     })
