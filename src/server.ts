@@ -4,11 +4,11 @@ import * as path from "path"
 import * as ytdl from "ytdl-core"
 import * as fs from "fs"
 import * as ffmpeg from "fluent-ffmpeg"
-import * as ms from "ms"
 
 import * as config from "./config.json"
 
-const socketio = require("socket.io")
+const socketio = require("socket.io") // These mosules had some errors in TypeScript
+const ms = require("ms")
 
 const app = express()
 const server = http.createServer(app)
