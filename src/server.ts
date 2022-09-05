@@ -4,6 +4,9 @@ import * as path from "path"
 import * as ytdl from "ytdl-core"
 import * as fs from "fs"
 import * as ffmpeg from "fluent-ffmpeg"
+import * as ms from "ms"
+
+import * as config from "./config.json"
 
 const socketio = require("socket.io")
 
@@ -51,9 +54,10 @@ app.get("/video/:fileName", (req, res) => {
 
 io.on("connection", (socket: any) => {
     console.log(`[socket.io] Socket connected`)
-
+    
     socket.on("download", async (data: any) => {
         let id, info
+        
         try {
             id = ytdl.getURLVideoID(data.url)
             info = await ytdl.getInfo(id)
@@ -61,7 +65,16 @@ io.on("connection", (socket: any) => {
             socket.emit("alert", "Invalid URL has been provided")
             return console.log("[error] Invalid URL")
         }
-        
+
+        info.formats.forEach(format => {
+            console.log(format.qualityLabel)
+        })
+
+        if (config.maxLength !== 0 && Number(info.videoDetails.lengthSeconds) * 1000 > config.maxLength) {
+            socket.emit("alert", `Maximum video length: ${ms(config.maxLength)}`)
+            return console.log("[erorr] Video too long")
+        }
+
         if (data.format == "mp3") {
             let audioPath = `./audio/${info.player_response.videoDetails.title}.mp3`
             audioPath = audioPath.split(`"`).join("'")
@@ -71,6 +84,12 @@ io.on("connection", (socket: any) => {
             if (fs.existsSync(audioPath)) {
                 console.log("[server] File was converted previously")
                 socket.emit("downloadReady", audioPath)
+
+                if (config.deleteTime !== 0) {
+                    setTimeout(function () {
+                        fs.unlinkSync(audioPath)
+                    }, config.deleteTime)
+                }
             } else {
                 const stream = ytdl(data.url, { filter: 'audioandvideo', quality: 'highestvideo' })
                 const command = ffmpeg({ source: stream })
@@ -79,6 +98,12 @@ io.on("connection", (socket: any) => {
                 command.on("end", () => { // Downloaded and converted to mp3
                     console.log("[ytdl] Download finished")
                     socket.emit("downloadReady", audioPath)
+
+                    if (config.deleteFiles) {
+                        setTimeout(function () {
+                            fs.unlinkSync(audioPath)
+                        }, config.deleteTime)
+                    }
                 })
             }
         } else if (data.format == "mp4") {
@@ -86,7 +111,7 @@ io.on("connection", (socket: any) => {
             videoPath = videoPath.split(`"`).join("'")
             videoPath = videoPath.split(`*`).join("'")
 
-            if(fs.existsSync(videoPath)) {
+            if (fs.existsSync(videoPath)) {
                 console.log("[server] File was converted previously")
                 socket.emit("downloadReady", videoPath)
             }

@@ -2,6 +2,7 @@
     "compilerOptions": {
         "module": "commonjs",
         "esModuleInterop": false,
+        "resolveJsonModule": true,
         "target": "es6",
         "noImplicitAny": true,
         "moduleResolution": "node",
@@ -17,9 +18,5 @@
     },
     "include": [
         "src/**/*"
-    ],
-    "exclude": [
-        "./database/*",
-        "./database/rooms/*"
     ]
 }
